@@ -1,0 +1,13 @@
+<nav class="bg-white fixed h-full shadow-md pt-16 transition-all duration-300" 
+     [class.w-64]="sidenavService.isOpen$ | async"
+     [class.w-16]="!(sidenavService.isOpen$ | async)">
+  <div class="py-6 overflow-hidden">
+    <app-nav-menu></app-nav-menu>
+  </div>
+</nav>
+
+<!-- Overlay -->
+<div *ngIf="(sidenavService.isOpen$ | async) && !isDesktop"
+     class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+     (click)="sidenavService.toggle()">
+</div>

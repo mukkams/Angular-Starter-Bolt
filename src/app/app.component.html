@@ -1,0 +1,11 @@
+<div class="min-h-screen bg-gray-100">
+  <app-header></app-header>
+  <app-sidenav></app-sidenav>
+
+  <!-- Main Content -->
+  <main class="pt-16 p-6 transition-all duration-300"
+        [class.ml-64]="sidenavService.isOpen$ | async"
+        [class.ml-16]="!(sidenavService.isOpen$ | async)">
+    <router-outlet></router-outlet>
+  </main>
+</div>

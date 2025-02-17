@@ -1,0 +1,88 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Dashboard!</h1>
+      <p class="text-gray-600">Overview of your portfolio and market activity</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <ng-container *ngIf="!isLoading && !error && (dashboardData$ | async) as dashboardData">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Stocks -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Total Stocks</h3>
+          <p class="text-3xl font-bold">{{ dashboardData.totalStocks }}</p>
+        </div>
+
+        <!-- Portfolio Value -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Portfolio Value</h3>
+          <p class="text-3xl font-bold">${{ dashboardData.totalValue | number:'1.0-0' }}</p>
+        </div>
+
+        <!-- Today's Performance -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Today's Performance</h3>
+          <p class="text-3xl font-bold" [class.text-green-600]="dashboardData.performanceToday >= 0" [class.text-red-600]="dashboardData.performanceToday < 0">
+            {{ dashboardData.performanceToday >= 0 ? '+' : '' }}{{ dashboardData.performanceToday }}%
+          </p>
+        </div>
+
+        <!-- Top Performers -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Performers</h3>
+          <div class="space-y-3">
+            <div *ngFor="let stock of dashboardData.topPerformers" class="flex justify-between items-center">
+              <div>
+                <p class="font-medium">{{ stock.symbol }}</p>
+                <p class="text-sm text-gray-500">{{ stock.name }}</p>
+              </div>
+              <p class="text-green-600 font-medium">+{{ stock.change }}%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <div class="space-y-4">
+          <div *ngFor="let activity of dashboardData.recentActivities" class="flex items-start space-x-4">
+            <!-- Activity Icon -->
+            <div [ngClass]="{
+              'bg-green-100 text-green-600': activity.type === 'buy',
+              'bg-red-100 text-red-600': activity.type === 'sell',
+              'bg-blue-100 text-blue-600': activity.type === 'alert'
+            }" class="p-2 rounded-lg">
+              <svg *ngIf="activity.type === 'buy'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <svg *ngIf="activity.type === 'sell'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+              </svg>
+              <svg *ngIf="activity.type === 'alert'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+
+            <div class="flex-1">
+              <p class="text-gray-900">{{ activity.description }}</p>
+              <p class="text-sm text-gray-500">{{ activity.timestamp | date:'medium' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

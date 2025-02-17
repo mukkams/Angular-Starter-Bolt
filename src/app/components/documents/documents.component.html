@@ -1,0 +1,148 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900">Document Management</h1>
+      <p class="mt-2 text-gray-600">Upload, preview, and analyze your PDF documents</p>
+    </div>
+
+    <!-- Document Upload -->
+    <div class="mb-6">
+      <ngx-dropzone 
+        (change)="onSelect($event)"
+        [multiple]="true"
+        accept="application/pdf"
+        class="border-2 border-dashed border-gray-300 rounded-lg"
+        [class.border-blue-500]="isDragging">
+        <ngx-dropzone-label>
+          <div class="text-center p-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-600">Drag and drop PDF files here, or click to select files</p>
+            <p class="mt-1 text-xs text-gray-500">Maximum file size: 10MB</p>
+          </div>
+        </ngx-dropzone-label>
+      </ngx-dropzone>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Document List -->
+      <div class="col-span-3 bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-lg font-semibold mb-4">Documents</h2>
+        <div class="space-y-2" cdkDropList (cdkDropListDropped)="onDrop($event)">
+          <div *ngFor="let doc of documents$ | async" 
+               class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+               [class.bg-blue-50]="(selectedDocument$ | async)?.id === doc.id"
+               (click)="selectDocument(doc)"
+               cdkDrag>
+            <div class="mr-3 cursor-move" cdkDragHandle>
+              <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate">{{ doc.name }}</p>
+              <p class="text-xs text-gray-500">{{ formatFileSize(doc.size) }}</p>
+            </div>
+            <button 
+              (click)="removeDocument(doc.id, $event)"
+              class="ml-2 p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Preview and Summary -->
+      <div class="col-span-9 grid grid-cols-2 gap-6">
+        <!-- Original Document -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold">Original Document</h2>
+            <div class="flex items-center space-x-2">
+              <button 
+                (click)="zoomOut()"
+                class="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                </svg>
+              </button>
+              <span class="text-sm text-gray-500">{{ (zoomLevel * 100).toFixed(0) }}%</span>
+              <button 
+                (click)="zoomIn()"
+                class="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <ng-container *ngIf="selectedDocument$ | async as selectedDoc">
+            <div class="bg-gray-100 rounded-lg overflow-hidden" style="height: calc(100vh - 400px);">
+              <pdf-viewer
+                [src]="selectedDoc.url"
+                [zoom]="zoomLevel"
+                [original-size]="false"
+                [show-all]="true"
+                [fit-to-page]="true"
+                style="width: 100%; height: 100%;">
+              </pdf-viewer>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Summary Panel -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold mb-2">Document Summary</h2>
+            
+            <!-- Model Selection -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Select AI Model</label>
+              <div class="grid grid-cols-1 gap-2">
+                <button *ngFor="let model of documentService.models"
+                        (click)="selectAIModel(model)"
+                        class="flex items-center p-3 rounded-lg border transition-colors duration-200"
+                        [class.border-blue-500]="selectedModel.id === model.id"
+                        [class.bg-blue-50]="selectedModel.id === model.id"
+                        [class.border-gray-200]="selectedModel.id !== model.id">
+                  <div class="flex-1">
+                    <p class="font-medium" [class.text-blue-600]="selectedModel.id === model.id">
+                      {{ model.name }}
+                    </p>
+                    <p class="text-sm text-gray-500">{{ model.description }}</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <ng-container *ngIf="selectedDocument$ | async as selectedDoc">
+              <button
+                (click)="generateSummary(selectedDoc)"
+                [disabled]="isGeneratingSummary"
+                class="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                {{ isGeneratingSummary ? 'Generating Summary...' : 'Generate Summary' }}
+              </button>
+
+              <!-- Error Message -->
+              <div *ngIf="error" class="mt-4 p-4 bg-red-50 text-red-700 rounded-lg">
+                {{ error }}
+              </div>
+
+              <!-- Summary Content -->
+              <div *ngIf="selectedDoc.summary" class="mt-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <p class="text-gray-700 whitespace-pre-wrap">{{ selectedDoc.summary }}</p>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

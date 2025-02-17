@@ -1,0 +1,26 @@
+<ul class="space-y-2">
+  <li *ngFor="let item of menuItems">
+    <a [routerLink]="item.route" 
+       routerLinkActive="bg-blue-50 text-blue-600"
+       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-300"
+       [class.justify-center]="!(sidenavService.isOpen$ | async)">
+      <svg xmlns="http://www.w3.org/2000/svg" 
+           class="h-5 w-5 transition-all duration-300"
+           [class.mr-3]="sidenavService.isOpen$ | async"
+           fill="none" 
+           viewBox="0 0 24 24" 
+           stroke="currentColor">
+        <path stroke-linecap="round" 
+              stroke-linejoin="round" 
+              stroke-width="2" 
+              [attr.d]="item.icon" />
+      </svg>
+      <span class="whitespace-nowrap transition-all duration-300"
+            [class.opacity-0]="!(sidenavService.isOpen$ | async)"
+            [class.w-0]="!(sidenavService.isOpen$ | async)"
+            [class.hidden]="!(sidenavService.isOpen$ | async)">
+        {{ item.title }}
+      </span>
+    </a>
+  </li>
+</ul>

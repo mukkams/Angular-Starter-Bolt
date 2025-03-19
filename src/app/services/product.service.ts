@@ -7,7 +7,7 @@ import { Todo, CreateTodoInput } from '../models/todo.type';
   providedIn: 'root',
 })
 export class ProductService {
-  private apiUrl = 'http://localhost:5000/api/product';
+  private apiUrl = 'https://localhost:5001/api/product';
   private mockProducts: Todo[] = [
     {
       id: 1,
@@ -41,8 +41,8 @@ export class ProductService {
   constructor(private http: HttpClient) {}
 
   getProducts(): Observable<Todo[]> {
-    // return this.http.get<Array<Todo>>(this.apiUrl);
-    return of(this.mockProducts);
+    return this.http.get<Array<Todo>>(this.apiUrl);
+    //return of(this.mockProducts);
   }
 
   addProduct(product: CreateTodoInput): Observable<Todo> {
